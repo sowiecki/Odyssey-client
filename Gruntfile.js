@@ -17,7 +17,7 @@ module.exports = function(grunt) {
         transform: [ require("grunt-react").browserify ]
       },
       app: {
-        src: "build/jsx/application.jsx",
+        src: "src/jsx/application.jsx",
         dest: "assets/application.js"
       }
     },
@@ -26,7 +26,7 @@ module.exports = function(grunt) {
          options: {
              paths: ["assets"]
          },
-         files: {"assets/application.css": "build/less/application.less"}
+         files: {"assets/application.css": "src/less/application.less"}
      },
     },
     uglify: {
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files: ["./build/**/*"],
+      files: ["./src/**/*"],
       tasks: ["browserify", "less"],
     },
   });
