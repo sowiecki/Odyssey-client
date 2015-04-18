@@ -28874,6 +28874,7 @@ var ErrorMessage = React.createClass({displayName: "ErrorMessage",
 React.render(React.createElement(MapControlContainer, null), document.getElementById('bike-control-container'));
 },{"./bike.jsx":208,"./config/options":209,"./faq.jsx":210,"./route-segments":211,"https":11,"react/addons":35}],208:[function(require,module,exports){
 var React = require('react/addons')
+    , https = require('https')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
 function BikeResult() {
@@ -28887,36 +28888,36 @@ bikeResult = new BikeResult();
 var Bike = React.createClass({displayName: "Bike",
 	getInitialState: function() {
     return {
-      mounted: false,
-      clicked: false
-    };
-  },
-  componentDidMount: function() {
+      mounted: false
+      , clicked: false
+    }
+  }
+  , componentDidMount: function() {
     this.setState({
       mounted: true
-    });
-  },
-  handleClick: function() {
-  	this.setState({clicked: !this.state.clicked});
-  },
-  handleSearch: function() {
+    })
+  }
+  , handleClick: function() {
+  	this.setState({clicked: !this.state.clicked})
+  }
+  , handleSearch: function() {
     var bikeId = null
-    tripId = document.getElementById('trip-id-input').value;
-    request = $.ajax({
-      url: "bike_for/" + tripId,
-      method: "get",
-      dataType: "json",
-      success: function(response) {
-        bikeResult.id = response;
-        bikeResult.display();
-      }
+    tripId = document.getElementById('trip-id-input').value
+    https.get('https://odyssey-api.herokuapp.com/bike_for/' + tripId, function(response) {
+      response.on('data', function(data) {
+        response = JSON.parse(data)
+        bikeResult.id = response
+        bikeResult.display()
+      })
+    }).on('error', function(error) {
+      console.error(error)
     })
     this.setState({clicked: !this.state.clicked, searched: !this.state.searched})
-  },
-  handleResult: function(result) {
+  }
+  , handleResult: function(result) {
     console.log(result)
-  },
-  render: function() {
+  }
+  , render: function() {
     var bikeSearch =
       React.createElement("div", {key: "bike-popup", id: "bike-popup"}, 
         React.createElement("p", {id: "close"}, React.createElement("a", {href: "#", onClick: this.handleClick}, "X")), 
@@ -28927,15 +28928,15 @@ var Bike = React.createClass({displayName: "Bike",
     if (this.state.clicked) {
   		text = [bikeSearch]
     } else {
-      text = [];
+      text = []
     }
     		
-    var key = 0;
+    var key = 0
     text.map(function (text) {
       return (
         React.createElement(BikeContainer, {key: key++, data: text})
-      );
-    });
+      )
+    })
     return (
       React.createElement("nav", null, 
       	React.createElement("a", {key: "bike-link", href: "#", onClick: this.handleClick}, "Find your bike"), 
@@ -28943,24 +28944,24 @@ var Bike = React.createClass({displayName: "Bike",
           text
         )
       )
-    );
+    )
   }
-});
+})
 var BikeContainer = React.createClass({displayName: "BikeContainer",
   getInitialState: function() {
     return {
       mounted: false
-    };
-  },
-  render: function() {
+    }
+  }
+  , render: function() {
     return (
       React.createElement("div", null, this.props.data)
-    );
+    )
   }
 })
 
 module.exports = Bike
-},{"react/addons":35}],209:[function(require,module,exports){
+},{"https":11,"react/addons":35}],209:[function(require,module,exports){
 var Chicago = new google.maps.LatLng(41.866867, -87.607076)
     , app = require('../application.jsx')
 
