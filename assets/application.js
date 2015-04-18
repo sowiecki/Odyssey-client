@@ -28502,68 +28502,30 @@ module.exports = warning;
 // Initialize dependencies
 var React = require('react/addons')
 		, https = require('https')
+    , options = require('./config/options')
+    , RouteSegments = require('./route-segments')
+    , BikeSearch = require('./bike.jsx')
+    , FaqPopup = require('./faq.jsx')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
-		
-function odysseyAPI(bike, offset) {
-	return 'https://odyssey-api.herokuapp.com/trip_for/' + bike + '/after/' + offset
-}
 
-// Map options
-var Chicago = new google.maps.LatLng(41.866867, -87.607076),
-    mapStyle = [
-      {"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":55}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]}
-    ],
-    mapOptions = {
-      zoom: 12,
-      panControl: false,
-      tilt: 0,
-      // disableAutoPan: true,
-      mapTypeControl: false,
-      styles: mapStyle,
-      zoomControl: false,
-      center: Chicago,
-      streetViewControlOptions: {
-        position: google.maps.ControlPosition.LEFT_CENTER
-      }
-    },
-    markerOptions = {
-      icon: "assets/marker_green.png",
-      zIndex: 50
-    },
-    rendererOptions = {
-      map: map,
-      markerOptions: markerOptions,
-      suppressBicyclingLayer: true,
-      polylineOptions: {
-        strokeColor: "#00a9ff",
-        strokeOpacity: 0
-      },
-      preserveViewport: true
-    };
-
-// StreetView Options
-var streetViewOptions = {
-      position: Chicago,
-      pov: {
-        heading: 320,
-        pitch: 1
-      },
-      addressControl: false,
-      zoomControl: false,
-      panControl: false
-    };
+React.render(React.createElement(FaqPopup, null), document.getElementById("faq-anchor"));
+React.render(React.createElement(BikeSearch, null), document.getElementById("bike-anchor"));
 
 // Initialize Map Dependencies
-var RouteSegments = require('./route-segments').model,
-    coordinates = [],
-    directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions),
-    directionsService = new google.maps.DirectionsService(),
-    map = new google.maps.Map(document.getElementById('map'), mapOptions),
-    counter = 0;
+var coordinates = []
+    , directionsDisplay = new google.maps.DirectionsRenderer(options.render)
+    , directionsService = new google.maps.DirectionsService()
+    , map = new google.maps.Map(document.getElementById('map'), options.map)
+    , counter = 0
 
 // Initialize StreetView Dependencies
-var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), streetViewOptions);
+var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView);
 directionsDisplay.setMap(map);
+
+module.exports = {
+  map: map
+  , streetView: streetView
+}
 
 RouteSegments.prototype.drawRoute = function () {
   this.makeSafeWaypts();
@@ -28576,7 +28538,7 @@ RouteSegments.prototype.drawRoute = function () {
       };
   directionsService.route(request, function(response, status) {
     clearInterval(rideInterval);
-    console.log("Google response status: " + status)
+    // console.log("Google response status: " + status)
     if (status == google.maps.DirectionsStatus.OK) {
       RouteControl.drawPoly(response);
       RouteControl.animate();
@@ -28592,39 +28554,29 @@ RouteSegments.prototype.drawRoute = function () {
 function RouteControl() {
   this.getTrip = function() {
     routeSegments.offset += 1
-    https.get(odysseyAPI(routeSegments.bikeId, routeSegments.offset), function(response) {
+    https.get('https://odyssey-api.herokuapp.com/trip_for/' + routeSegments.bikeId + '/after/' + routeSegments.offset, function(response) {
 		  response.on('data', function(data) {
 		  	data = JSON.parse(data)
 		    if (data.status === 200) {
           routeSegments.advanceRoute(data);
-        } else {
-          RouteControl.stopTraverse();
+        } else if (data.status === 510) {
+        	RouteControl.stopTraverse();
           React.render(React.createElement(ErrorContainer, {data: [{message: "Bike not found, try another!", loadAnim: false}]}), document.getElementById('error-container'));
+        } else if (data.status === 404) {
+          RouteControl.stopTraverse();
+          React.render(React.createElement(ErrorContainer, {data: [{message: "That's every trip in the database!", loadAnim: false}]}), document.getElementById('error-container'));
         }
 		  });
 		}).on('error', function(error) {
 		  console.error(error);
 		});
-    // $.ajax({
-    //   url: "trip_for/" + routeSegments.bikeId + "/after/" + routeSegments.offset,
-    //   method: "get",
-    //   dataType: "json",
-    //   success: function(data) {
-    //     if (data.length) {
-    //       routeSegments.advanceRoute(data[0]);
-    //     } else {
-    //       RouteControl.stopTraverse();
-    //       React.render(<ErrorContainer data={[{message: "Bike not found, try another!", loadAnim: false}]} />, document.getElementById('error-container'));
-    //     }
-    //   }
-    // })
   },
   this.stopTraverse = function() {
     clearInterval(rideInterval);
     intervalId = 0;
     directionsDisplay.set('directions', null);
-    map.panTo(Chicago);
-    streetView.setPosition(Chicago);
+    map.panTo(options.Chicago);
+    streetView.setPosition(options.Chicago);
     React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
     React.render(React.createElement("span", null), document.getElementById('error-container'));
   },
@@ -28920,10 +28872,253 @@ var ErrorMessage = React.createClass({displayName: "ErrorMessage",
 })
 
 React.render(React.createElement(MapControlContainer, null), document.getElementById('bike-control-container'));
-},{"./route-segments":208,"https":11,"react/addons":35}],208:[function(require,module,exports){
+},{"./bike.jsx":208,"./config/options":209,"./faq.jsx":210,"./route-segments":211,"https":11,"react/addons":35}],208:[function(require,module,exports){
+var React = require('react/addons')
+    , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
+
+function BikeResult() {
+  this.id = null;
+  this.display = function() {
+    document.getElementById('bike-id-input').value = this.id;
+  }
+}
+bikeResult = new BikeResult();
+
+var Bike = React.createClass({displayName: "Bike",
+	getInitialState: function() {
+    return {
+      mounted: false,
+      clicked: false
+    };
+  },
+  componentDidMount: function() {
+    this.setState({
+      mounted: true
+    });
+  },
+  handleClick: function() {
+  	this.setState({clicked: !this.state.clicked});
+  },
+  handleSearch: function() {
+    var bikeId = null
+    tripId = document.getElementById('trip-id-input').value;
+    request = $.ajax({
+      url: "bike_for/" + tripId,
+      method: "get",
+      dataType: "json",
+      success: function(response) {
+        bikeResult.id = response;
+        bikeResult.display();
+      }
+    })
+    this.setState({clicked: !this.state.clicked, searched: !this.state.searched})
+  },
+  handleResult: function(result) {
+    console.log(result)
+  },
+  render: function() {
+    var bikeSearch =
+      React.createElement("div", {key: "bike-popup", id: "bike-popup"}, 
+        React.createElement("p", {id: "close"}, React.createElement("a", {href: "#", onClick: this.handleClick}, "X")), 
+        React.createElement("input", {id: "trip-id-input", className: "nav-control text-field", type: "text", autofocus: "true", autoComplete: "off", placeholder: "Trip ID"}), 
+        React.createElement("input", {id: "trip-id-submit", className: "nav-control button-gray", onClick: this.handleSearch, type: "submit", value: "Search"})
+      )
+
+    if (this.state.clicked) {
+  		text = [bikeSearch]
+    } else {
+      text = [];
+    }
+    		
+    var key = 0;
+    text.map(function (text) {
+      return (
+        React.createElement(BikeContainer, {key: key++, data: text})
+      );
+    });
+    return (
+      React.createElement("nav", null, 
+      	React.createElement("a", {key: "bike-link", href: "#", onClick: this.handleClick}, "Find your bike"), 
+        React.createElement(ReactCSSTransitionGroup, {transitionName: "bike"}, 
+          text
+        )
+      )
+    );
+  }
+});
+var BikeContainer = React.createClass({displayName: "BikeContainer",
+  getInitialState: function() {
+    return {
+      mounted: false
+    };
+  },
+  render: function() {
+    return (
+      React.createElement("div", null, this.props.data)
+    );
+  }
+})
+
+module.exports = Bike
+},{"react/addons":35}],209:[function(require,module,exports){
+var Chicago = new google.maps.LatLng(41.866867, -87.607076)
+    , app = require('../application.jsx')
+
+mapStyle = [
+    {"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":55}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]}
+  ]
+
+var mapOptions = {
+    zoom: 12,
+    panControl: false,
+    tilt: 0,
+    // disableAutoPan: true,
+    mapTypeControl: false,
+    styles: mapStyle,
+    zoomControl: false,
+    center: Chicago,
+    streetViewControlOptions: {
+      position: google.maps.ControlPosition.LEFT_CENTER
+    }
+  }
+
+var streetViewOptions = {
+    position: Chicago,
+    pov: {
+      heading: 320,
+      pitch: 1
+    },
+    addressControl: false,
+    zoomControl: false,
+    panControl: false
+  }
+
+var markerOptions = {
+    icon: "assets/images/marker_green.png",
+    zIndex: 50
+  }
+
+var rendererOptions = {
+    map: map.app
+    , markerOptions: markerOptions
+    , suppressBicyclingLayer: true
+    , polylineOptions: {
+      strokeColor: "#00a9ff"
+      , strokeOpacity: 0
+    }
+    , preserveViewport: true
+  }
+
 module.exports = {
-  model: RouteSegments
-};
+  map: mapOptions
+  , Chicago: Chicago
+  , streetView: streetViewOptions
+  , render: rendererOptions 
+}
+},{"../application.jsx":207}],210:[function(require,module,exports){
+var React = require('react/addons')
+    , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
+
+var Faq = React.createClass({displayName: "Faq",
+	getInitialState: function() {
+    return {
+      mounted: false,
+      clicked: false
+    };
+  },
+  componentDidMount: function() {
+    this.setState({
+      mounted: true
+    });
+  },
+  handleClick: function() {
+  	this.setState({clicked: !this.state.clicked});
+  },
+  render: function() {
+    var faqPage =
+      React.createElement("div", {key: "faq-popup", id: "faq-popup"}, 
+        React.createElement("p", {id: "close"}, React.createElement("a", {href: "#", onClick: this.handleClick}, "X")), 
+        React.createElement("p", null, 
+          "This application is best viewed on a ", React.createElement("b", null, "non-"), "mobile device."
+        ), 
+        React.createElement("h2", null, "How do I use ", React.createElement("i", null, "Odyssey"), "?"), 
+        React.createElement("p", null, 
+          "Enter a bike ID (most any number from 1 to 3000) and hit Begin, or just hit \"Random.\""
+        ), 
+        React.createElement("p", null, 
+          React.createElement("i", null, "Odyssey"), " will then begin traversing through all of the trips taken by that particular bike during the year 2014. It will start from the first trip of the year and move chronologically forward until it reaches the last trip of the year."
+        ), 
+        React.createElement("p", null, 
+          "Up to 10 previous destinations are kept on the map at a time. Previous destinations can be clicked on to snap" + ' ' + 
+          "the map and streetview back to those coordinates."
+        ), 
+        React.createElement("h2", null, "How does ", React.createElement("i", null, "Odyssey"), " work?"), 
+        React.createElement("p", null, 
+          "All ", React.createElement("a", {href: "https://www.divvybikes.com/datachallenge", target: "_blank"}, "Divvy trips made during 2014"), " are" + ' ' + 
+          "loaded in this application", "'", "s database. Those trips are then cross-referenced with the" + ' ' + 
+          "geo coordinates for their origin and destination stations."
+        ), 
+        React.createElement("p", null, 
+          "Routes are approximated for each trip using Google", "'", "s bicycling directions service." 
+        ), 
+        React.createElement("h2", null, "How can I find the bikes I", "'", "ve ridden?"), 
+        React.createElement("p", null, 
+          "If you are registered with Divvy, you can use the trip IDs from your ride history page to search for the bike you took on that trip. Click \"Find your bike\" in the upper-right-hand corner. If a match is found, the input field will be filled with the bike ID."
+        ), 
+        React.createElement("h2", null, "What", "'", "s the tech stack?"), 
+        React.createElement("ul", null, 
+          React.createElement("li", null, "Backend: ", React.createElement("a", {href: "http://rubyonrails.org/", target: "_blank"}, "Ruby on Rails")), 
+          React.createElement("li", null, "Database: ", React.createElement("a", {href: "http://neo4j.com/", target: "_blank"}, "Neo4j")), 
+          React.createElement("li", null, 
+            "Frontend: ", React.createElement("a", {href: "https://developers.google.com/maps/web/", target: "_blank"}, "Google Maps API (of course!)"), " and ", React.createElement("a", {href: "http://facebook.github.io/react/", target: "_blank"}, "React")
+          ), 
+          React.createElement("li", null, "Other: ", React.createElement("a", {href: "http://browserify.org/", target: "_blank"}, "Browserify"), " and ", React.createElement("a", {href: "http://puma.io/", target: "_blank"}, "Puma"))
+        ), 
+        React.createElement("p", null, 
+          "If you want to know more about how this application works," + ' ' + 
+          "the ", React.createElement("a", {href: "https://github.com/Nase00/Odyssey", target: "_blank"}, "source code can be viewed here"), "."
+        ), 
+        React.createElement("p", null, 
+          React.createElement("a", {href: "http://opensource.com/resources/what-open-source", target: "_blank"}, "Learn more about open source here"), "."
+        )
+      )
+
+  	if (this.state.clicked) {
+  		text = [faqPage]
+  	} else { text = [null] }
+    		
+    var key = 0;
+    text.map(function (text) {
+      return (
+        React.createElement(FaqContainer, {key: key++, data: text})
+      );
+    });
+    return (
+      React.createElement("nav", null, 
+      	React.createElement("a", {key: "faq-link", href: "#", onClick: this.handleClick}, "FAQ"), 
+        React.createElement(ReactCSSTransitionGroup, {transitionName: "faq"}, 
+          text
+        )
+      )
+    );
+  }
+});
+var FaqContainer = React.createClass({displayName: "FaqContainer",
+  getInitialState: function() {
+    return {
+      mounted: false
+    };
+  },
+  render: function() {
+    return (
+      React.createElement("div", null, this.props.data)
+    );
+  }
+})
+
+module.exports = Faq
+},{"react/addons":35}],211:[function(require,module,exports){
+var app = require('./application.jsx')
 
 function RouteSegments() {
   this.bikeId = null;
@@ -28943,7 +29138,6 @@ function RouteSegments() {
     }
   };
   this.advanceRoute = function(trip) {
-    console.log(trip.lat)
     if (this.waypts.length == 10) {
       this.waypts.shift();
       this.wayptsInfo.shift();
@@ -28967,4 +29161,6 @@ function RouteSegments() {
     this.drawRoute();
   };
 };
-},{}]},{},[207]);
+
+module.exports = RouteSegments
+},{"./application.jsx":207}]},{},[207]);

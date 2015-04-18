@@ -1,68 +1,30 @@
 // Initialize dependencies
 var React = require('react/addons')
 		, https = require('https')
+    , options = require('./config/options')
+    , RouteSegments = require('./route-segments')
+    , BikeSearch = require('./bike.jsx')
+    , FaqPopup = require('./faq.jsx')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
-		
-function odysseyAPI(bike, offset) {
-	return 'https://odyssey-api.herokuapp.com/trip_for/' + bike + '/after/' + offset
-}
 
-// Map options
-var Chicago = new google.maps.LatLng(41.866867, -87.607076),
-    mapStyle = [
-      {"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":55}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]}
-    ],
-    mapOptions = {
-      zoom: 12,
-      panControl: false,
-      tilt: 0,
-      // disableAutoPan: true,
-      mapTypeControl: false,
-      styles: mapStyle,
-      zoomControl: false,
-      center: Chicago,
-      streetViewControlOptions: {
-        position: google.maps.ControlPosition.LEFT_CENTER
-      }
-    },
-    markerOptions = {
-      icon: "assets/marker_green.png",
-      zIndex: 50
-    },
-    rendererOptions = {
-      map: map,
-      markerOptions: markerOptions,
-      suppressBicyclingLayer: true,
-      polylineOptions: {
-        strokeColor: "#00a9ff",
-        strokeOpacity: 0
-      },
-      preserveViewport: true
-    };
-
-// StreetView Options
-var streetViewOptions = {
-      position: Chicago,
-      pov: {
-        heading: 320,
-        pitch: 1
-      },
-      addressControl: false,
-      zoomControl: false,
-      panControl: false
-    };
+React.render(<FaqPopup/>, document.getElementById("faq-anchor"));
+React.render(<BikeSearch/>, document.getElementById("bike-anchor"));
 
 // Initialize Map Dependencies
-var RouteSegments = require('./route-segments').model,
-    coordinates = [],
-    directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions),
-    directionsService = new google.maps.DirectionsService(),
-    map = new google.maps.Map(document.getElementById('map'), mapOptions),
-    counter = 0;
+var coordinates = []
+    , directionsDisplay = new google.maps.DirectionsRenderer(options.render)
+    , directionsService = new google.maps.DirectionsService()
+    , map = new google.maps.Map(document.getElementById('map'), options.map)
+    , counter = 0
 
 // Initialize StreetView Dependencies
-var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), streetViewOptions);
+var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView);
 directionsDisplay.setMap(map);
+
+module.exports = {
+  map: map
+  , streetView: streetView
+}
 
 RouteSegments.prototype.drawRoute = function () {
   this.makeSafeWaypts();
@@ -75,7 +37,7 @@ RouteSegments.prototype.drawRoute = function () {
       };
   directionsService.route(request, function(response, status) {
     clearInterval(rideInterval);
-    console.log("Google response status: " + status)
+    // console.log("Google response status: " + status)
     if (status == google.maps.DirectionsStatus.OK) {
       RouteControl.drawPoly(response);
       RouteControl.animate();
@@ -91,39 +53,29 @@ RouteSegments.prototype.drawRoute = function () {
 function RouteControl() {
   this.getTrip = function() {
     routeSegments.offset += 1
-    https.get(odysseyAPI(routeSegments.bikeId, routeSegments.offset), function(response) {
+    https.get('https://odyssey-api.herokuapp.com/trip_for/' + routeSegments.bikeId + '/after/' + routeSegments.offset, function(response) {
 		  response.on('data', function(data) {
 		  	data = JSON.parse(data)
 		    if (data.status === 200) {
           routeSegments.advanceRoute(data);
-        } else {
-          RouteControl.stopTraverse();
+        } else if (data.status === 510) {
+        	RouteControl.stopTraverse();
           React.render(<ErrorContainer data={[{message: "Bike not found, try another!", loadAnim: false}]} />, document.getElementById('error-container'));
+        } else if (data.status === 404) {
+          RouteControl.stopTraverse();
+          React.render(<ErrorContainer data={[{message: "That's every trip in the database!", loadAnim: false}]} />, document.getElementById('error-container'));
         }
 		  });
 		}).on('error', function(error) {
 		  console.error(error);
 		});
-    // $.ajax({
-    //   url: "trip_for/" + routeSegments.bikeId + "/after/" + routeSegments.offset,
-    //   method: "get",
-    //   dataType: "json",
-    //   success: function(data) {
-    //     if (data.length) {
-    //       routeSegments.advanceRoute(data[0]);
-    //     } else {
-    //       RouteControl.stopTraverse();
-    //       React.render(<ErrorContainer data={[{message: "Bike not found, try another!", loadAnim: false}]} />, document.getElementById('error-container'));
-    //     }
-    //   }
-    // })
   },
   this.stopTraverse = function() {
     clearInterval(rideInterval);
     intervalId = 0;
     directionsDisplay.set('directions', null);
-    map.panTo(Chicago);
-    streetView.setPosition(Chicago);
+    map.panTo(options.Chicago);
+    streetView.setPosition(options.Chicago);
     React.render(<span />, document.getElementById('routes-display-container'))
     React.render(<span />, document.getElementById('error-container'));
   },

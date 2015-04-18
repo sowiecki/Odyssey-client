@@ -1,6 +1,4 @@
-module.exports = {
-  model: RouteSegments
-};
+var app = require('./application.jsx')
 
 function RouteSegments() {
   this.bikeId = null;
@@ -20,7 +18,6 @@ function RouteSegments() {
     }
   };
   this.advanceRoute = function(trip) {
-    console.log(trip.lat)
     if (this.waypts.length == 10) {
       this.waypts.shift();
       this.wayptsInfo.shift();
@@ -44,3 +41,5 @@ function RouteSegments() {
     this.drawRoute();
   };
 };
+
+module.exports = RouteSegments

@@ -17,7 +17,7 @@ module.exports = function(grunt) {
         transform: [ require("grunt-react").browserify ]
       },
       app: {
-        src: "src/jsx/application.jsx",
+        src: "src/app/application.jsx",
         dest: "assets/application.js"
       }
     },
