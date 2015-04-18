@@ -28508,8 +28508,8 @@ var React = require('react/addons')
     , FaqPopup = require('./faq.jsx')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
-React.render(React.createElement(FaqPopup, null), document.getElementById("faq-anchor"));
-React.render(React.createElement(BikeSearch, null), document.getElementById("bike-anchor"));
+React.render(React.createElement(FaqPopup, null), document.getElementById("faq-anchor"))
+React.render(React.createElement(BikeSearch, null), document.getElementById("bike-anchor"))
 
 // Initialize Map Dependencies
 var coordinates = []
@@ -28519,8 +28519,8 @@ var coordinates = []
     , counter = 0
 
 // Initialize StreetView Dependencies
-var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView);
-directionsDisplay.setMap(map);
+var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView)
+directionsDisplay.setMap(map)
 
 module.exports = {
   map: map
@@ -28528,27 +28528,27 @@ module.exports = {
 }
 
 RouteSegments.prototype.drawRoute = function () {
-  this.makeSafeWaypts();
+  this.makeSafeWaypts()
   var destination = routeSegments.waypts[routeSegments.waypts.length-1].location,
       request = {
         origin: this.waypts[0].location,
         destination: destination,
         waypoints: this.safeWaypts,
         travelMode: google.maps.TravelMode.BICYCLING
-      };
+      }
   directionsService.route(request, function(response, status) {
-    clearInterval(rideInterval);
+    clearInterval(rideInterval)
     // console.log("Google response status: " + status)
     if (status == google.maps.DirectionsStatus.OK) {
-      RouteControl.drawPoly(response);
-      RouteControl.animate();
-      directionsDisplay.setDirections(response);
-      React.render(React.createElement("span", null), document.getElementById('error-container'));
-      React.render(React.createElement(RoutesInfoContainer, {tripsInfo: routeSegments.wayptsInfo}), document.getElementById('routes-display-container'));
+      RouteControl.drawPoly(response)
+      RouteControl.animate()
+      directionsDisplay.setDirections(response)
+      React.render(React.createElement("span", null), document.getElementById('error-container'))
+      React.render(React.createElement(RoutesInfoContainer, {tripsInfo: routeSegments.wayptsInfo}), document.getElementById('routes-display-container'))
     } else {
-      React.render(React.createElement(ErrorContainer, {data: [{message: "Waiting on Google", loadAnim: true}]}), document.getElementById('error-container'));
-    };
-  });
+      React.render(React.createElement(ErrorContainer, {data: [{message: "Waiting on Google", loadAnim: true}]}), document.getElementById('error-container'))
+    }
+  })
 }
 
 function RouteControl() {
@@ -28558,65 +28558,65 @@ function RouteControl() {
 		  response.on('data', function(data) {
 		  	data = JSON.parse(data)
 		    if (data.status === 200) {
-          routeSegments.advanceRoute(data);
+          routeSegments.advanceRoute(data)
         } else if (data.status === 510) {
-        	RouteControl.stopTraverse();
-          React.render(React.createElement(ErrorContainer, {data: [{message: "Bike not found, try another!", loadAnim: false}]}), document.getElementById('error-container'));
+        	RouteControl.stopTraverse()
+          React.render(React.createElement(ErrorContainer, {data: [{message: "Bike not found, try another!", loadAnim: false}]}), document.getElementById('error-container'))
         } else if (data.status === 404) {
-          RouteControl.stopTraverse();
-          React.render(React.createElement(ErrorContainer, {data: [{message: "That's every trip in the database!", loadAnim: false}]}), document.getElementById('error-container'));
+          RouteControl.stopTraverse()
+          React.render(React.createElement(ErrorContainer, {data: [{message: "That's every trip in the database!", loadAnim: false}]}), document.getElementById('error-container'))
         }
-		  });
+		  })
 		}).on('error', function(error) {
-		  console.error(error);
-		});
+		  console.error(error)
+		})
   },
   this.stopTraverse = function() {
-    clearInterval(rideInterval);
-    intervalId = 0;
-    directionsDisplay.set('directions', null);
-    map.panTo(options.Chicago);
-    streetView.setPosition(options.Chicago);
+    clearInterval(rideInterval)
+    intervalId = 0
+    directionsDisplay.set('directions', null)
+    map.panTo(options.Chicago)
+    streetView.setPosition(options.Chicago)
     React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
-    React.render(React.createElement("span", null), document.getElementById('error-container'));
+    React.render(React.createElement("span", null), document.getElementById('error-container'))
   },
   this.drawPoly = function(result) {
-    var routesArray = result.routes[0].overview_path;
-    poly.setMap(map);
-    poly.setPath(routesArray);
+    var routesArray = result.routes[0].overview_path
+    poly.setMap(map)
+    poly.setPath(routesArray)
   },
   this.loading = function() {
-    React.render(React.createElement(ErrorContainer, {data: [{message: "Loading trips for bike #" + routeSegments.bikeId, loadAnim: true}]}), document.getElementById('error-container'));
+    React.render(React.createElement(ErrorContainer, {data: [{message: "Loading trips for bike #" + routeSegments.bikeId, loadAnim: true}]}), document.getElementById('error-container'))
   },
   this.fixate = function(location) {
-    map.panTo(location);
-    streetView.setPosition(location);
+    map.panTo(location)
+    streetView.setPosition(location)
     var heading = google.maps.geometry.spherical.computeHeading(streetView.location.latLng, location),
-        pov = streetView.getPov();
-    pov.heading = heading;
-    streetView.setPov(pov);
+        pov = streetView.getPov()
+    pov.heading = heading
+    streetView.setPov(pov)
   },
   this.animate = function() {
     rideInterval = window.setInterval(function() { 
-      var location = poly.getPath().getAt(counter);
+      var location = poly.getPath().getAt(counter)
       if (counter >= poly.getPath().length - 1) {
-        window.clearInterval(rideInterval);
-        RouteControl.getTrip();
+        window.clearInterval(rideInterval)
+        RouteControl.getTrip()
       } else {
-        interpolatePath = google.maps.geometry.spherical.interpolate(poly.getPath().getAt(counter),poly.getPath().getAt(counter + 1),counter/250);
-        RouteControl.fixate(interpolatePath);
-        RouteControl.fixate(location);
-        counter++;
+        interpolatePath = google.maps.geometry.spherical.interpolate(poly.getPath().getAt(counter),poly.getPath().getAt(counter + 1),counter/250)
+        RouteControl.fixate(interpolatePath)
+        RouteControl.fixate(location)
+        counter++
       }
-    }, routeSegments.speedInterval);
+    }, routeSegments.speedInterval)
   },
   this.initiate = function() {
-    React.render(React.createElement("span", null), document.getElementById('routes-display-container'));
-    routeSegments.offset = 0;
-    RouteControl.getTrip();
-    map.setZoom(15);
-    this.loading();
-  };
+    React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
+    routeSegments.offset = 0
+    RouteControl.getTrip()
+    map.setZoom(15)
+    this.loading()
+  }
 }
 
 // Initialize control dependencies
@@ -28632,24 +28632,24 @@ var RouteControl = new RouteControl,
           strokeWeight: 3
         },
     poly = new google.maps.Polyline(polyOptions),
-    interpolatePath;
+    interpolatePath
 
-map.setStreetView(streetView);
+map.setStreetView(streetView)
 
 // Reset streetview if it gets pushed off an available path
 function removeListener() {
-  google.maps.event.removeListener(streetViewListener);
-};
+  google.maps.event.removeListener(streetViewListener)
+}
 var resetCounter = 0,
     streetViewListener = google.maps.event.addListener(streetView, 'visible_changed', function() {
       if (resetCounter <= 10 && !streetView.getVisible()) {
-        resetCounter++;
-        streetView.setVisible();
-        RouteControl.fixate(routeSegments.waypts[routeSegments.waypts.length - 1]);
+        resetCounter++
+        streetView.setVisible()
+        RouteControl.fixate(routeSegments.waypts[routeSegments.waypts.length - 1])
       } else {
-        resetCounter = 0;
+        resetCounter = 0
       }
-    });
+    })
 
 var MapControlContainer = React.createClass({displayName: "MapControlContainer",
   getInitialState: function() {
@@ -28658,57 +28658,57 @@ var MapControlContainer = React.createClass({displayName: "MapControlContainer",
       traversing: false,
       paused: false,
       speedier: false
-    };
+    }
   },
   componentDidMount: function() {
     this.setState({
       mounted: true
-    });
+    })
   },
   startTraverse: function() {
-    routeSegments.bikeId = document.getElementById('bike-id-input').value;
+    routeSegments.bikeId = document.getElementById('bike-id-input').value
     if (routeSegments.bikeId) {
-      this.setState({traversing: !this.state.traversing});
-      RouteControl.initiate();
+      this.setState({traversing: !this.state.traversing})
+      RouteControl.initiate()
     } else {
-      React.render(React.createElement(ErrorContainer, {data: [{message: "Please enter a bike id", loadAnim: false}]}), document.getElementById('error-container'));
+      React.render(React.createElement(ErrorContainer, {data: [{message: "Please enter a bike id", loadAnim: false}]}), document.getElementById('error-container'))
     }
   },
   startRandomTraverse: function() {
-    this.setState({traversing: !this.state.traversing});
-    routeSegments.bikeId = Math.floor(Math.random() * (3000-1) + 1);
-    RouteControl.initiate();
+    this.setState({traversing: !this.state.traversing})
+    routeSegments.bikeId = Math.floor(Math.random() * (3000-1) + 1)
+    RouteControl.initiate()
   },
   stopTraverse: function() {
-    routeSegments = new RouteSegments;
-    counter = 0;
-    poly.setMap(null);
-    clearInterval(rideInterval);
-    this.setState({traversing: !this.state.traversing});
-    this.setState({paused: false, speedier: false});
-    RouteControl.stopTraverse();
-    map.setZoom(12);
+    routeSegments = new RouteSegments
+    counter = 0
+    poly.setMap(null)
+    clearInterval(rideInterval)
+    this.setState({traversing: !this.state.traversing})
+    this.setState({paused: false, speedier: false})
+    RouteControl.stopTraverse()
+    map.setZoom(12)
   },
   handleInterval: function() {
-    this.setState({paused: !this.state.paused});
+    this.setState({paused: !this.state.paused})
     if (!this.state.paused) {
-      clearInterval(rideInterval);
-      React.render(React.createElement("span", null), document.getElementById('error-container'));
+      clearInterval(rideInterval)
+      React.render(React.createElement("span", null), document.getElementById('error-container'))
     } else {
-      RouteControl.animate();
+      RouteControl.animate()
     }
   },
   changeSpeed: function() {
     if (!this.state.paused) {
-      this.setState({speedier: !this.state.speedier});
+      this.setState({speedier: !this.state.speedier})
 
-      clearInterval(rideInterval);
+      clearInterval(rideInterval)
       if (this.state.speedier) {
-        routeSegments.speedInterval = 1400;
+        routeSegments.speedInterval = 1400
       } else {
-        routeSegments.speedInterval = 600;
-      };
-      RouteControl.animate();
+        routeSegments.speedInterval = 600
+      }
+      RouteControl.animate()
     }
   },
   render: function() {
@@ -28733,8 +28733,8 @@ var MapControlContainer = React.createClass({displayName: "MapControlContainer",
       speedDown =
         React.createElement("input", {key: "speed-down", id: "speed-down", className: "map-control button-blue", onClick: this.changeSpeed, type: "submit", target: "remote", value: "Slow"})
 
-    var buttonArray;
-    var key = 0;
+    var buttonArray
+    var key = 0
 
     if (!this.state.traversing) {
       buttonArray = [initiateButtons]
@@ -28753,8 +28753,8 @@ var MapControlContainer = React.createClass({displayName: "MapControlContainer",
     buttonArray.map(function (button) {
       return (
           React.createElement(MapControl, {key: key++, data: button})
-        );
-    }.bind(this));
+        )
+    }.bind(this))
 
     return (
       React.createElement("div", null, 
@@ -28762,19 +28762,19 @@ var MapControlContainer = React.createClass({displayName: "MapControlContainer",
           React.createElement(MapControl, {key: key++, data: buttonArray})
         )
       )
-    );
+    )
   }
 })
 var MapControl = React.createClass({displayName: "MapControl",
   getInitialState: function() {
     return {
       mounted: false
-    };
+    }
   },
   render: function() {
     return (
       React.createElement("div", {id: "hold-buttons"}, this.props.data)
-    );
+    )
   }
 })
 
@@ -28783,12 +28783,12 @@ var RoutesInfoContainer = React.createClass({displayName: "RoutesInfoContainer",
     var routeNodes = this.props.tripsInfo.map(function (data) {
       return (
           React.createElement(RouteInfoBox, {key: data.tripId, data: data})
-        );
-    }.bind(this));
+        )
+    }.bind(this))
 
     // Hacky fix for the routes display container occasionally bugging out with extra tables.
     if (routeNodes.length > 10) {
-      React.render(React.createElement("span", null), document.getElementById('routes-display-container'));
+      React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
     }
 
     return (
@@ -28797,15 +28797,15 @@ var RoutesInfoContainer = React.createClass({displayName: "RoutesInfoContainer",
           routeNodes
         )
       )
-    );
+    )
   }
 })
 
 var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
   onClick: function() {
     var location = new google.maps.LatLng(this.props.data.latitude, this.props.data.longitude)
-    map.panTo(location);
-    RouteControl.fixate(location);
+    map.panTo(location)
+    RouteControl.fixate(location)
   },
   render: function() {
     return (
@@ -28821,57 +28821,57 @@ var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
           )
         )
       )
-    );
+    )
   }
 })
 
 var ErrorContainer = React.createClass({displayName: "ErrorContainer",
   render: function() {
-    var key = 0;
+    var key = 0
     var errors = this.props.data.map(function (error) {
       return (
         React.createElement(ErrorMessage, {key: key++, data: error, loadAnim: error.loadAnim})
-      );
-    });
+      )
+    })
     return (
       React.createElement("div", null, 
         React.createElement(ReactCSSTransitionGroup, {transitionName: "error"}, 
           errors
         )
       )
-    );
+    )
   }
 })
 var ErrorMessage = React.createClass({displayName: "ErrorMessage",
   getInitialState: function() {
-    return {dashFlash: " "};
+    return {dashFlash: " "}
   },
   flash: function() {
     if (this.state.dashFlash.length > 10) {
-      this.setState({dashFlash: ""});
+      this.setState({dashFlash: ""})
     } else {
-      this.setState({dashFlash: this.state.dashFlash + "-"});
+      this.setState({dashFlash: this.state.dashFlash + "-"})
     }
   },
   componentDidMount: function() {
     if (this.props.data.loadAnim) {
-      this.interval = setInterval(this.flash, 100);
+      this.interval = setInterval(this.flash, 100)
     } else {
-      this.interval = null;
+      this.interval = null
     }
   },
   componentWillUnmount: function() {
-    clearInterval(this.interval);
+    clearInterval(this.interval)
   },
   render: function() {
-    var flash = this.props.data.loadAnim ? this.state.dashFlash : null;
+    var flash = this.props.data.loadAnim ? this.state.dashFlash : null
     return (
       React.createElement("div", {id: "error-container"}, flash, " ", this.props.data.message, " ", flash)
-    );
+    )
   }
 })
 
-React.render(React.createElement(MapControlContainer, null), document.getElementById('bike-control-container'));
+React.render(React.createElement(MapControlContainer, null), document.getElementById('bike-control-container'))
 },{"./bike.jsx":208,"./config/options":209,"./faq.jsx":210,"./route-segments":211,"https":11,"react/addons":35}],208:[function(require,module,exports){
 var React = require('react/addons')
     , https = require('https')
