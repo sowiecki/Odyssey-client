@@ -26,7 +26,9 @@ module.exports = function(grunt) {
          options: {
              paths: ["assets"]
          },
-         files: {"assets/application.css": "src/less/application.less"}
+         files: {
+          "assets/application.css": "src/less/*.less"
+        }
      },
     },
     uglify: {
