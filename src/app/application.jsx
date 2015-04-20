@@ -3,6 +3,7 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
+    // , RouteControl = require('./route-controller.jsx')
     , RoutesInfoContainer = require('./components/routes-info-container.jsx')
     , ErrorContainer = require('./components/error-container.jsx')
     , BikeSearch = require('./components/bike-search.jsx')
@@ -48,6 +49,7 @@ RouteSegments.prototype.drawRoute = function () {
 }
 
 function RouteControl() {
+  var self = this
   this.getTrip = function() {
     routeSegments.offset += 1
     https.get('https://odyssey-api.herokuapp.com/trip_for/' + routeSegments.bikeId + '/after/' + routeSegments.offset, function(response) {
@@ -56,10 +58,10 @@ function RouteControl() {
 		    if (data.status === 200) {
           routeSegments.advanceRoute(data)
         } else if (data.status === 510) {
-        	RouteControl.stopTraverse()
+        	self.stopTraverse()
           React.render(<ErrorContainer data={[{message: "Bike not found, try another!", loadAnim: false}]} />, document.getElementById('error-container'))
         } else if (data.status === 404) {
-          RouteControl.stopTraverse()
+          self.stopTraverse()
           React.render(<ErrorContainer data={[{message: "That's every trip in the database!", loadAnim: false}]} />, document.getElementById('error-container'))
         }
 		  })
@@ -97,11 +99,11 @@ function RouteControl() {
       var location = poly.getPath().getAt(counter)
       if (counter >= poly.getPath().length - 1) {
         window.clearInterval(rideInterval)
-        RouteControl.getTrip()
+        self.getTrip()
       } else {
         interpolatePath = google.maps.geometry.spherical.interpolate(poly.getPath().getAt(counter),poly.getPath().getAt(counter + 1),counter/250)
-        RouteControl.fixate(interpolatePath)
-        RouteControl.fixate(location)
+        self.fixate(interpolatePath)
+        self.fixate(location)
         counter++
       }
     }, routeSegments.speedInterval)
@@ -109,7 +111,7 @@ function RouteControl() {
   this.initiate = function() {
     React.render(<span />, document.getElementById('routes-display-container'))
     routeSegments.offset = 0
-    RouteControl.getTrip()
+    this.getTrip()
     map.setZoom(15)
     this.loading()
   }
@@ -280,4 +282,6 @@ module.exports = {
   map: map
   , streetView: streetView
   , controller: RouteControl
+  , model: routeSegments
+  // , rideInterval: rideInterval
 }
