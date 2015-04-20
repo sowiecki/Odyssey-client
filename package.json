@@ -2,7 +2,7 @@
   "name": "odyssey",
   "version": "0.2.0",
   "description": "front-end",
-  "main": "index.js",
+  "main": "assets/application.js",
   "dependencies": {
     "grunt": "^0.4.5",
     "https-browserify": "0.0.0",
