@@ -28504,14 +28504,16 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
-    , BikeSearch = require('./bike.jsx')
-    , FaqPopup = require('./faq.jsx')
+    , RoutesInfoContainer = require('./components/routes-info-container.jsx')
+    , ErrorContainer = require('./components/error-container.jsx')
+    , BikeSearch = require('./components/bike-search.jsx')
+    , FaqPopup = require('./components/faq.jsx')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
 React.render(React.createElement(FaqPopup, null), document.getElementById("faq-anchor"))
 React.render(React.createElement(BikeSearch, null), document.getElementById("bike-anchor"))
 
-// Initialize Map Dependencies
+// Initialize map
 var coordinates = []
     , directionsDisplay = new google.maps.DirectionsRenderer(options.render)
     , directionsService = new google.maps.DirectionsService()
@@ -28521,11 +28523,6 @@ var coordinates = []
 // Initialize StreetView Dependencies
 var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView)
 directionsDisplay.setMap(map)
-
-module.exports = {
-  map: map
-  , streetView: streetView
-}
 
 RouteSegments.prototype.drawRoute = function () {
   this.makeSafeWaypts()
@@ -28778,101 +28775,14 @@ var MapControl = React.createClass({displayName: "MapControl",
   }
 })
 
-var RoutesInfoContainer = React.createClass({displayName: "RoutesInfoContainer",
-  render: function() {
-    var routeNodes = this.props.tripsInfo.map(function (data) {
-      return (
-          React.createElement(RouteInfoBox, {key: data.tripId, data: data})
-        )
-    }.bind(this))
-
-    // Hacky fix for the routes display container occasionally bugging out with extra tables.
-    if (routeNodes.length > 10) {
-      React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
-    }
-
-    return (
-      React.createElement("div", null, 
-        React.createElement(ReactCSSTransitionGroup, {transitionName: "routeInfoBox", component: "div"}, 
-          routeNodes
-        )
-      )
-    )
-  }
-})
-
-var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
-  onClick: function() {
-    var location = new google.maps.LatLng(this.props.data.latitude, this.props.data.longitude)
-    map.panTo(location)
-    RouteControl.fixate(location)
-  },
-  render: function() {
-    return (
-      React.createElement("div", {key: this.props.data.tripId, className: "trip-box"}, 
-        React.createElement("a", {href: "#", onClick: this.onClick}, 
-          React.createElement("p", null, React.createElement("b", null, "Origin:"), " ", this.props.data.startLocation), 
-          React.createElement("span", {className: "extended-info"}, 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.startTime), 
-            React.createElement("p", null, React.createElement("b", null, "Destination:"), " ", this.props.data.stopLocation), 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.stopTime), 
-            React.createElement("p", null, React.createElement("b", null, "Duration:"), " ", this.props.data.duration), 
-            React.createElement("p", {className: "trip-id"}, "Trip ID: ", this.props.data.tripId)
-          )
-        )
-      )
-    )
-  }
-})
-
-var ErrorContainer = React.createClass({displayName: "ErrorContainer",
-  render: function() {
-    var key = 0
-    var errors = this.props.data.map(function (error) {
-      return (
-        React.createElement(ErrorMessage, {key: key++, data: error, loadAnim: error.loadAnim})
-      )
-    })
-    return (
-      React.createElement("div", null, 
-        React.createElement(ReactCSSTransitionGroup, {transitionName: "error"}, 
-          errors
-        )
-      )
-    )
-  }
-})
-var ErrorMessage = React.createClass({displayName: "ErrorMessage",
-  getInitialState: function() {
-    return {dashFlash: " "}
-  },
-  flash: function() {
-    if (this.state.dashFlash.length > 10) {
-      this.setState({dashFlash: ""})
-    } else {
-      this.setState({dashFlash: this.state.dashFlash + "-"})
-    }
-  },
-  componentDidMount: function() {
-    if (this.props.data.loadAnim) {
-      this.interval = setInterval(this.flash, 100)
-    } else {
-      this.interval = null
-    }
-  },
-  componentWillUnmount: function() {
-    clearInterval(this.interval)
-  },
-  render: function() {
-    var flash = this.props.data.loadAnim ? this.state.dashFlash : null
-    return (
-      React.createElement("div", {id: "error-container"}, flash, " ", this.props.data.message, " ", flash)
-    )
-  }
-})
-
 React.render(React.createElement(MapControlContainer, null), document.getElementById('bike-control-container'))
-},{"./bike.jsx":208,"./config/options":209,"./faq.jsx":210,"./route-segments":211,"https":11,"react/addons":35}],208:[function(require,module,exports){
+
+module.exports = {
+  map: map
+  , streetView: streetView
+  , controller: RouteControl
+}
+},{"./components/bike-search.jsx":208,"./components/error-container.jsx":209,"./components/faq.jsx":210,"./components/routes-info-container.jsx":211,"./config/options":212,"./route-segments":213,"https":11,"react/addons":35}],208:[function(require,module,exports){
 var React = require('react/addons')
     , https = require('https')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
@@ -28962,61 +28872,57 @@ var BikeContainer = React.createClass({displayName: "BikeContainer",
 
 module.exports = Bike
 },{"https":11,"react/addons":35}],209:[function(require,module,exports){
-var Chicago = new google.maps.LatLng(41.866867, -87.607076)
-    , app = require('../application.jsx')
+var React = require('react/addons')
+    , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
-mapStyle = [
-    {"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":55}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]}
-  ]
-
-var mapOptions = {
-    zoom: 12,
-    panControl: false,
-    tilt: 0,
-    // disableAutoPan: true,
-    mapTypeControl: false,
-    styles: mapStyle,
-    zoomControl: false,
-    center: Chicago,
-    streetViewControlOptions: {
-      position: google.maps.ControlPosition.LEFT_CENTER
+var ErrorContainer = React.createClass({displayName: "ErrorContainer",
+  render: function() {
+    var key = 0
+    var errors = this.props.data.map(function (error) {
+      return (
+        React.createElement(ErrorMessage, {key: key++, data: error, loadAnim: error.loadAnim})
+      )
+    })
+    return (
+      React.createElement("div", null, 
+        React.createElement(ReactCSSTransitionGroup, {transitionName: "error"}, 
+          errors
+        )
+      )
+    )
+  }
+})
+var ErrorMessage = React.createClass({displayName: "ErrorMessage",
+  getInitialState: function() {
+    return {dashFlash: " "}
+  },
+  flash: function() {
+    if (this.state.dashFlash.length > 10) {
+      this.setState({dashFlash: ""})
+    } else {
+      this.setState({dashFlash: this.state.dashFlash + "-"})
     }
-  }
-
-var streetViewOptions = {
-    position: Chicago,
-    pov: {
-      heading: 320,
-      pitch: 1
-    },
-    addressControl: false,
-    zoomControl: false,
-    panControl: false
-  }
-
-var markerOptions = {
-    icon: "assets/images/marker_green.png",
-    zIndex: 50
-  }
-
-var rendererOptions = {
-    map: map.app
-    , markerOptions: markerOptions
-    , suppressBicyclingLayer: true
-    , polylineOptions: {
-      strokeColor: "#00a9ff"
-      , strokeOpacity: 0
+  },
+  componentDidMount: function() {
+    if (this.props.data.loadAnim) {
+      this.interval = setInterval(this.flash, 100)
+    } else {
+      this.interval = null
     }
-    , preserveViewport: true
+  },
+  componentWillUnmount: function() {
+    clearInterval(this.interval)
+  },
+  render: function() {
+    var flash = this.props.data.loadAnim ? this.state.dashFlash : null
+    return (
+      React.createElement("div", {id: "error-container"}, flash, " ", this.props.data.message, " ", flash)
+    )
   }
+})
 
-module.exports = {
-  map: mapOptions
-  , Chicago: Chicago
-  , streetView: streetViewOptions
-  , render: rendererOptions 
-}
-},{"../application.jsx":207}],210:[function(require,module,exports){
+module.exports = ErrorContainer
+},{"react/addons":35}],210:[function(require,module,exports){
 var React = require('react/addons')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
@@ -29119,6 +29025,114 @@ var FaqContainer = React.createClass({displayName: "FaqContainer",
 
 module.exports = Faq
 },{"react/addons":35}],211:[function(require,module,exports){
+var React = require('react/addons')
+    , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
+    , RouteControl = require('../application.jsx').controller
+
+var RoutesInfoContainer = React.createClass({displayName: "RoutesInfoContainer",
+  render: function() {
+    var routeNodes = this.props.tripsInfo.map(function (data) {
+      return (
+          React.createElement(RouteInfoBox, {key: data.tripId, data: data})
+        )
+    }.bind(this))
+
+    // Hacky fix for the routes display container occasionally bugging out with extra tables.
+    if (routeNodes.length > 10) {
+      React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
+    }
+
+    return (
+      React.createElement("div", null, 
+        React.createElement(ReactCSSTransitionGroup, {transitionName: "routeInfoBox", component: "div"}, 
+          routeNodes
+        )
+      )
+    )
+  }
+})
+
+var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
+  onClick: function() {
+    var location = new google.maps.LatLng(this.props.data.latitude, this.props.data.longitude)
+    map.panTo(location)
+    RouteControl.fixate(location)
+  },
+  render: function() {
+    return (
+      React.createElement("div", {key: this.props.data.tripId, className: "trip-box"}, 
+        React.createElement("a", {href: "#", onClick: this.onClick}, 
+          React.createElement("p", null, React.createElement("b", null, "Origin:"), " ", this.props.data.startLocation), 
+          React.createElement("span", {className: "extended-info"}, 
+            React.createElement("p", {className: "indent"}, "at ", this.props.data.startTime), 
+            React.createElement("p", null, React.createElement("b", null, "Destination:"), " ", this.props.data.stopLocation), 
+            React.createElement("p", {className: "indent"}, "at ", this.props.data.stopTime), 
+            React.createElement("p", null, React.createElement("b", null, "Duration:"), " ", this.props.data.duration), 
+            React.createElement("p", {className: "trip-id"}, "Trip ID: ", this.props.data.tripId)
+          )
+        )
+      )
+    )
+  }
+})
+
+module.exports = RoutesInfoContainer
+},{"../application.jsx":207,"react/addons":35}],212:[function(require,module,exports){
+var Chicago = new google.maps.LatLng(41.866867, -87.607076)
+    , app = require('../application.jsx')
+
+mapStyle = [
+    {"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":55}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]}
+  ]
+
+var mapOptions = {
+    zoom: 12,
+    panControl: false,
+    tilt: 0,
+    // disableAutoPan: true,
+    mapTypeControl: false,
+    styles: mapStyle,
+    zoomControl: false,
+    center: Chicago,
+    streetViewControlOptions: {
+      position: google.maps.ControlPosition.LEFT_CENTER
+    }
+  }
+
+var streetViewOptions = {
+    position: Chicago,
+    pov: {
+      heading: 320,
+      pitch: 1
+    },
+    addressControl: false,
+    zoomControl: false,
+    panControl: false
+  }
+
+var markerOptions = {
+    icon: "assets/images/marker_green.png",
+    zIndex: 50
+  }
+
+var rendererOptions = {
+    map: map.app
+    , markerOptions: markerOptions
+    , suppressBicyclingLayer: true
+    , polylineOptions: {
+      strokeColor: "#00a9ff"
+      , strokeOpacity: 0
+    }
+    , preserveViewport: true
+  }
+
+module.exports = {
+  map: mapOptions
+  , Chicago: Chicago
+  , streetView: streetViewOptions
+  , render: rendererOptions 
+}
+},{"../application.jsx":207}],213:[function(require,module,exports){
 var app = require('./application.jsx')
 
 function RouteSegments() {

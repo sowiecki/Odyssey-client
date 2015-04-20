@@ -3,14 +3,16 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
-    , BikeSearch = require('./bike.jsx')
-    , FaqPopup = require('./faq.jsx')
+    , RoutesInfoContainer = require('./components/routes-info-container.jsx')
+    , ErrorContainer = require('./components/error-container.jsx')
+    , BikeSearch = require('./components/bike-search.jsx')
+    , FaqPopup = require('./components/faq.jsx')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
 React.render(<FaqPopup/>, document.getElementById("faq-anchor"))
 React.render(<BikeSearch/>, document.getElementById("bike-anchor"))
 
-// Initialize Map Dependencies
+// Initialize map
 var coordinates = []
     , directionsDisplay = new google.maps.DirectionsRenderer(options.render)
     , directionsService = new google.maps.DirectionsService()
@@ -20,11 +22,6 @@ var coordinates = []
 // Initialize StreetView Dependencies
 var streetView = new google.maps.StreetViewPanorama(document.getElementById('streetview'), options.streetView)
 directionsDisplay.setMap(map)
-
-module.exports = {
-  map: map
-  , streetView: streetView
-}
 
 RouteSegments.prototype.drawRoute = function () {
   this.makeSafeWaypts()
@@ -277,97 +274,10 @@ var MapControl = React.createClass({
   }
 })
 
-var RoutesInfoContainer = React.createClass({
-  render: function() {
-    var routeNodes = this.props.tripsInfo.map(function (data) {
-      return (
-          <RouteInfoBox key={data.tripId} data={data} />
-        )
-    }.bind(this))
-
-    // Hacky fix for the routes display container occasionally bugging out with extra tables.
-    if (routeNodes.length > 10) {
-      React.render(<span />, document.getElementById('routes-display-container'))
-    }
-
-    return (
-      <div>
-        <ReactCSSTransitionGroup transitionName="routeInfoBox" component="div">
-          {routeNodes}
-        </ReactCSSTransitionGroup>
-      </div>
-    )
-  }
-})
-
-var RouteInfoBox = React.createClass({
-  onClick: function() {
-    var location = new google.maps.LatLng(this.props.data.latitude, this.props.data.longitude)
-    map.panTo(location)
-    RouteControl.fixate(location)
-  },
-  render: function() {
-    return (
-      <div key={this.props.data.tripId} className="trip-box">
-        <a href="#" onClick={this.onClick}>
-          <p><b>Origin:</b> {this.props.data.startLocation}</p>
-          <span className="extended-info">
-            <p className="indent">at {this.props.data.startTime}</p>
-            <p><b>Destination:</b> {this.props.data.stopLocation}</p>
-            <p className="indent">at {this.props.data.stopTime}</p>
-            <p><b>Duration:</b> {this.props.data.duration}</p>
-            <p className="trip-id">Trip ID: {this.props.data.tripId}</p> 
-          </span>        
-        </a>
-      </div>
-    )
-  }
-})
-
-var ErrorContainer = React.createClass({
-  render: function() {
-    var key = 0
-    var errors = this.props.data.map(function (error) {
-      return (
-        <ErrorMessage key={key++} data={error} loadAnim={error.loadAnim} />
-      )
-    })
-    return (
-      <div>
-        <ReactCSSTransitionGroup transitionName="error">
-          {errors}
-        </ReactCSSTransitionGroup>
-      </div>
-    )
-  }
-})
-var ErrorMessage = React.createClass({
-  getInitialState: function() {
-    return {dashFlash: " "}
-  },
-  flash: function() {
-    if (this.state.dashFlash.length > 10) {
-      this.setState({dashFlash: ""})
-    } else {
-      this.setState({dashFlash: this.state.dashFlash + "-"})
-    }
-  },
-  componentDidMount: function() {
-    if (this.props.data.loadAnim) {
-      this.interval = setInterval(this.flash, 100)
-    } else {
-      this.interval = null
-    }
-  },
-  componentWillUnmount: function() {
-    clearInterval(this.interval)
-  },
-  render: function() {
-    var flash = this.props.data.loadAnim ? this.state.dashFlash : null
-    return (
-      <div id="error-container">{flash} {this.props.data.message} {flash}</div>
-    )
-  }
-})
-
 React.render(<MapControlContainer />, document.getElementById('bike-control-container'))
+
+module.exports = {
+  map: map
+  , streetView: streetView
+  , controller: RouteControl
+}
