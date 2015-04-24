@@ -3,7 +3,7 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
-    // , RouteControl = require('./route-controller.jsx')
+    // , routeControl = require('./route-controller.jsx')
     , RoutesInfoContainer = require('./components/routes-info-container.jsx')
     , ErrorContainer = require('./components/error-container.jsx')
     , BikeSearch = require('./components/bike-search.jsx')
@@ -37,8 +37,8 @@ RouteSegments.prototype.drawRoute = function () {
     clearInterval(rideInterval)
     // console.log("Google response status: " + status)
     if (status == google.maps.DirectionsStatus.OK) {
-      RouteControl.drawPoly(response)
-      RouteControl.animate()
+      routeControl.drawPoly(response)
+      routeControl.animate()
       directionsDisplay.setDirections(response)
       React.render(<span />, document.getElementById('error-container'))
       React.render(<RoutesInfoContainer tripsInfo={routeSegments.wayptsInfo} />, document.getElementById('routes-display-container'))
@@ -118,7 +118,7 @@ function RouteControl() {
 }
 
 // Initialize control dependencies
-var RouteControl = new RouteControl,
+var routeControl = new RouteControl,
     routeSegments = new RouteSegments,
     routeInterval,
     rideInterval,
@@ -143,7 +143,7 @@ var resetCounter = 0,
       if (resetCounter <= 10 && !streetView.getVisible()) {
         resetCounter++
         streetView.setVisible()
-        RouteControl.fixate(routeSegments.waypts[routeSegments.waypts.length - 1])
+        routeControl.fixate(routeSegments.waypts[routeSegments.waypts.length - 1])
       } else {
         resetCounter = 0
       }
@@ -167,7 +167,7 @@ var MapControlContainer = React.createClass({
     routeSegments.bikeId = document.getElementById('bike-id-input').value
     if (routeSegments.bikeId) {
       this.setState({traversing: !this.state.traversing})
-      RouteControl.initiate()
+      routeControl.initiate()
     } else {
       React.render(<ErrorContainer data={[{message: "Please enter a bike id", loadAnim: false}]} />, document.getElementById('error-container'))
     }
@@ -175,7 +175,7 @@ var MapControlContainer = React.createClass({
   startRandomTraverse: function() {
     this.setState({traversing: !this.state.traversing})
     routeSegments.bikeId = Math.floor(Math.random() * (3000-1) + 1)
-    RouteControl.initiate()
+    routeControl.initiate()
   },
   stopTraverse: function() {
     routeSegments = new RouteSegments
@@ -184,7 +184,7 @@ var MapControlContainer = React.createClass({
     clearInterval(rideInterval)
     this.setState({traversing: !this.state.traversing})
     this.setState({paused: false, speedier: false})
-    RouteControl.stopTraverse()
+    routeControl.stopTraverse()
     map.setZoom(12)
   },
   handleInterval: function() {
@@ -193,7 +193,7 @@ var MapControlContainer = React.createClass({
       clearInterval(rideInterval)
       React.render(<span />, document.getElementById('error-container'))
     } else {
-      RouteControl.animate()
+      routeControl.animate()
     }
   },
   changeSpeed: function() {
@@ -206,7 +206,7 @@ var MapControlContainer = React.createClass({
       } else {
         routeSegments.speedInterval = 600
       }
-      RouteControl.animate()
+      routeControl.animate()
     }
   },
   render: function() {
@@ -281,7 +281,7 @@ React.render(<MapControlContainer />, document.getElementById('bike-control-cont
 module.exports = {
   map: map
   , streetView: streetView
-  , controller: RouteControl
+  , controller: routeControl
   , model: routeSegments
   // , rideInterval: rideInterval
 }

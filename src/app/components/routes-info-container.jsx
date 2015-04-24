@@ -1,6 +1,6 @@
 var React = require('react/addons')
     , ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
-    , RouteControl = require('../application.jsx').controller
+    , routeControl = require('../application.jsx').controller
 
 var RoutesInfoContainer = React.createClass({
   render: function() {
@@ -28,8 +28,7 @@ var RoutesInfoContainer = React.createClass({
 var RouteInfoBox = React.createClass({
   onClick: function() {
     var location = new google.maps.LatLng(this.props.data.latitude, this.props.data.longitude)
-    map.panTo(location)
-    RouteControl.fixate(location)
+    routeControl.fixate(location)
   },
   render: function() {
     return (
