@@ -4,9 +4,10 @@ var React = require('react/addons')
 
 var RoutesInfoContainer = React.createClass({
   render: function() {
-    var routeNodes = this.props.tripsInfo.map(function (data) {
+    var key = 0
+        , routeNodes = this.props.tripsInfo.map(function (data) {
       return (
-          <RouteInfoBox key={data.tripId} data={data} />
+          <RouteInfoBox key={key++} data={data} />
         )
     }.bind(this))
 
