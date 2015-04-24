@@ -225,7 +225,7 @@ var MapControlContainer = React.createClass({
       stopButton =
         <input key="stop-traverse" id="stop-traverse" className="map-control button-red" onClick={this.stopTraverse} type="submit" target="remote" value="Stop" />,
       currentBike =
-        <div key="current-bike" id="info-left">Following bike #{routeSegments.bikeId} through 2014</div>,
+        <div key="current-bike" id="info-left">Following bike #{routeSegments.bikeId}</div>,
       speedUp =
         <input key="speed-up" id="speed-up" className="map-control button-green" onClick={this.changeSpeed} type="submit" target="remote" value="Fast" />,
       speedDown =

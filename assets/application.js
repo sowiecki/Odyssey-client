@@ -28833,7 +28833,7 @@ var MapControlContainer = React.createClass({displayName: "MapControlContainer",
       stopButton =
         React.createElement("input", {key: "stop-traverse", id: "stop-traverse", className: "map-control button-red", onClick: this.stopTraverse, type: "submit", target: "remote", value: "Stop"}),
       currentBike =
-        React.createElement("div", {key: "current-bike", id: "info-left"}, "Following bike #", routeSegments.bikeId, " through 2014"),
+        React.createElement("div", {key: "current-bike", id: "info-left"}, "Following bike #", routeSegments.bikeId),
       speedUp =
         React.createElement("input", {key: "speed-up", id: "speed-up", className: "map-control button-green", onClick: this.changeSpeed, type: "submit", target: "remote", value: "Fast"}),
       speedDown =
