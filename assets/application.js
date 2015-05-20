@@ -28710,7 +28710,6 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
-    // , routeControl = require('./route-controller.jsx')
     , RoutesInfoContainer = require('./components/routes-info-container.jsx')
     , ErrorContainer = require('./components/error-container.jsx')
     , BikeSearch = require('./components/bike-search.jsx')
@@ -28830,12 +28829,12 @@ var routeControl = new RouteControl,
     routeInterval,
     rideInterval,
     polyOptions = {
-          path: [],
-          geodesic: true,
-          strokeColor: '#00a9ff',
-          strokeOpacity: 0.25,
-          strokeWeight: 3
-        },
+      path: [],
+      geodesic: true,
+      strokeColor: '#00a9ff',
+      strokeOpacity: 0.25,
+      strokeWeight: 3
+    },
     poly = new google.maps.Polyline(polyOptions),
     interpolatePath
 
@@ -28990,7 +28989,6 @@ module.exports = {
   , streetView: streetView
   , controller: routeControl
   , model: routeSegments
-  // , rideInterval: rideInterval
 }
 },{"./components/bike-search.jsx":208,"./components/error-container.jsx":209,"./components/faq.jsx":210,"./components/routes-info-container.jsx":211,"./config/options":212,"./route-segments":213,"https":34,"react/addons":35}],208:[function(require,module,exports){
 var React = require('react/addons')
@@ -29243,21 +29241,14 @@ var RoutesInfoContainer = React.createClass({displayName: "RoutesInfoContainer",
   render: function() {
     var key = 0
         , routeNodes = this.props.tripsInfo.map(function (data) {
-      return (
-          React.createElement(RouteInfoBox, {key: key++, data: data})
-        )
-    }.bind(this))
-
-    // Hacky fix for the routes display container occasionally bugging out with extra tables.
-    if (routeNodes.length > 10) {
-      React.render(React.createElement("span", null), document.getElementById('routes-display-container'))
-    }
+          return (
+            React.createElement(RouteInfoBox, {key: key++, data: data})
+          )
+        })
 
     return (
       React.createElement("div", null, 
-        React.createElement(ReactCSSTransitionGroup, {transitionName: "routeInfoBox", component: "div"}, 
-          routeNodes
-        )
+        routeNodes
       )
     )
   }
@@ -29274,9 +29265,9 @@ var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
         React.createElement("a", {href: "#", onClick: this.onClick}, 
           React.createElement("p", null, React.createElement("b", null, "Origin:"), " ", this.props.data.startLocation), 
           React.createElement("span", {className: "extended-info"}, 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.startTime), 
+            React.createElement("p", {className: "indent"}, "on ", this.props.data.startTime), 
             React.createElement("p", null, React.createElement("b", null, "Destination:"), " ", this.props.data.stopLocation), 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.stopTime), 
+            React.createElement("p", {className: "indent"}, "on ", this.props.data.stopTime), 
             React.createElement("p", null, React.createElement("b", null, "Duration:"), " ", this.props.data.duration), 
             React.createElement("p", {className: "trip-id"}, "Trip ID: ", this.props.data.tripId)
           )
