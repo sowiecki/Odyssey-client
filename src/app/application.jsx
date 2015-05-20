@@ -3,7 +3,6 @@ var React = require('react/addons')
 		, https = require('https')
     , options = require('./config/options')
     , RouteSegments = require('./route-segments')
-    // , routeControl = require('./route-controller.jsx')
     , RoutesInfoContainer = require('./components/routes-info-container.jsx')
     , ErrorContainer = require('./components/error-container.jsx')
     , BikeSearch = require('./components/bike-search.jsx')
@@ -123,12 +122,12 @@ var routeControl = new RouteControl,
     routeInterval,
     rideInterval,
     polyOptions = {
-          path: [],
-          geodesic: true,
-          strokeColor: '#00a9ff',
-          strokeOpacity: 0.25,
-          strokeWeight: 3
-        },
+      path: [],
+      geodesic: true,
+      strokeColor: '#00a9ff',
+      strokeOpacity: 0.25,
+      strokeWeight: 3
+    },
     poly = new google.maps.Polyline(polyOptions),
     interpolatePath
 
@@ -283,5 +282,4 @@ module.exports = {
   , streetView: streetView
   , controller: routeControl
   , model: routeSegments
-  // , rideInterval: rideInterval
 }

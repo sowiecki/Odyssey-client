@@ -6,21 +6,14 @@ var RoutesInfoContainer = React.createClass({
   render: function() {
     var key = 0
         , routeNodes = this.props.tripsInfo.map(function (data) {
-      return (
-          <RouteInfoBox key={key++} data={data} />
-        )
-    }.bind(this))
-
-    // Hacky fix for the routes display container occasionally bugging out with extra tables.
-    if (routeNodes.length > 10) {
-      React.render(<span />, document.getElementById('routes-display-container'))
-    }
+          return (
+            <RouteInfoBox key={key++} data={data} />
+          )
+        })
 
     return (
       <div>
-        <ReactCSSTransitionGroup transitionName="routeInfoBox" component="div">
-          {routeNodes}
-        </ReactCSSTransitionGroup>
+        {routeNodes}
       </div>
     )
   }
