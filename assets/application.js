@@ -29265,9 +29265,9 @@ var RouteInfoBox = React.createClass({displayName: "RouteInfoBox",
         React.createElement("a", {href: "#", onClick: this.onClick}, 
           React.createElement("p", null, React.createElement("b", null, "Origin:"), " ", this.props.data.startLocation), 
           React.createElement("span", {className: "extended-info"}, 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.startTime), 
+            React.createElement("p", {className: "indent"}, "on ", this.props.data.startTime), 
             React.createElement("p", null, React.createElement("b", null, "Destination:"), " ", this.props.data.stopLocation), 
-            React.createElement("p", {className: "indent"}, "at ", this.props.data.stopTime), 
+            React.createElement("p", {className: "indent"}, "on ", this.props.data.stopTime), 
             React.createElement("p", null, React.createElement("b", null, "Duration:"), " ", this.props.data.duration), 
             React.createElement("p", {className: "trip-id"}, "Trip ID: ", this.props.data.tripId)
           )
