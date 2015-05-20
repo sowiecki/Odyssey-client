@@ -52,7 +52,7 @@ function RouteControl() {
   var self = this
   this.getTrip = function() {
     routeSegments.offset += 1
-    https.get('https://odyssey-api.herokuapp.com/trip_for/' + routeSegments.bikeId + '/after/' + routeSegments.offset, function(response) {
+    https.get('https://divvy-odyssey.herokuapp.com/trip_for/' + routeSegments.bikeId + '/after/' + routeSegments.offset, function(response) {
 		  response.on('data', function(data) {
 		  	data = JSON.parse(data)
 		    if (data.status === 200) {
