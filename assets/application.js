@@ -29057,7 +29057,7 @@ var Bike = React.createClass({displayName: "Bike",
     })
     return (
       React.createElement("nav", null, 
-      	React.createElement("a", {key: "bike-link", href: "#", onClick: this.handleClick}, "Find your bike"), 
+      	React.createElement("a", {key: "bike-link", href: "#", onClick: this.handleClick}, "Find bike"), 
         React.createElement(ReactCSSTransitionGroup, {transitionName: "bike"}, 
           text
         )

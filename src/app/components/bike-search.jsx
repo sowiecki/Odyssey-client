@@ -64,7 +64,7 @@ var Bike = React.createClass({
     })
     return (
       <nav>
-      	<a key="bike-link" href="#" onClick={this.handleClick}>Find your bike</a>
+      	<a key="bike-link" href="#" onClick={this.handleClick}>Find bike</a>
         <ReactCSSTransitionGroup transitionName="bike">
           {text}
         </ReactCSSTransitionGroup>

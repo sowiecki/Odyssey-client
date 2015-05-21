@@ -144,9 +144,13 @@ div#hold-buttons {
   input.map-control {
     padding: 2px;
     width: 60px;
-    height: 24px;
+    height: 40px;
     font-size: 14px;
     font-weight: bold;
+  }
+  div#hold-buttons {
+    padding: 0 1% 0 1%;
+    text-align: center;
   }
 }
 
@@ -477,7 +481,7 @@ span#info-right {
 @media only screen and (max-device-width: 736px) {
   div#bike-control-container {
     padding: 2px;
-    height: 24px;
+    height: 40px;
     font-size: 14px;
   }
   #info-left {
